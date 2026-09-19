@@ -7,13 +7,11 @@ def carregar_dados(caminho_arquivo='dataSett/CVLI_Agosto.xlsx'):
     try:
         # Verifica se o arquivo existe antes de tentar abrir
         if not os.path.exists(caminho_arquivo):
-            st.error(f"🚨 Erro Crítico: O banco de dados '{caminho_arquivo}' não foi encontrado no servidor.")
-            st.info("Verifique se a pasta 'dataSett' existe e contém a planilha correta.")
-            st.stop() # Interrompe o painel graciosamente sem mostrar erros de código
+            st.error(f"🚨 Erro Crítico: O banco de dados '{caminho_arquivo}' não foi encontrado.")
+            st.stop()
 
-        df_cvli = pd.read_excel(caminho_arquivo, sheet_name='CVLI')
-        df_ip = pd.read_excel(caminho_arquivo, sheet_name='Intervenção Policial')
-        df_up = pd.read_excel(caminho_arquivo, sheet_name='Unidade Prisional')
+        # Lê apenas a aba principal (índice 0) focada nos CVLIs
+        df_cvli = pd.read_excel(caminho_arquivo, sheet_name=0)
         
         # Tratamento de Datas e Idades
         df_cvli['Data'] = pd.to_datetime(df_cvli['Data'])
@@ -32,21 +30,18 @@ def carregar_dados(caminho_arquivo='dataSett/CVLI_Agosto.xlsx'):
         ordem_dias = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo']
         df_cvli['Dia da Semana'] = pd.Categorical(df_cvli['Dia da Semana'], categories=ordem_dias, ordered=True)
         
-        return df_cvli, df_ip, df_up
+        return df_cvli
         
     except Exception as e:
         st.error(f"🚨 Falha na leitura dos dados. Detalhes técnicos: {e}")
         st.stop()
 
-# --- Função atualizada com o 9º argumento: "naturezas" ---
 def filtrar_dados_cvli(df, datas, municipios, ais, meios, faixas, escolaridades, generos, naturezas):
     df_filtrado = df.copy()
     
-    # Filtro de Data
     if len(datas) == 2:
         df_filtrado = df_filtrado[(df_filtrado['Data'].dt.date >= datas[0]) & (df_filtrado['Data'].dt.date <= datas[1])]
     
-    # Filtros Categóricos
     if municipios:
         df_filtrado = df_filtrado[df_filtrado['Município'].isin(municipios)]
     if ais:
@@ -59,8 +54,6 @@ def filtrar_dados_cvli(df, datas, municipios, ais, meios, faixas, escolaridades,
         df_filtrado = df_filtrado[df_filtrado['Escolaridade da Vítima'].isin(escolaridades)]
     if generos:
         df_filtrado = df_filtrado[df_filtrado['Gênero'].isin(generos)]
-        
-    # --- NOVO FILTRO DE NATUREZA AQUI ---
     if naturezas:
         df_filtrado = df_filtrado[df_filtrado['Natureza'].isin(naturezas)]
         
