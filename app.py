@@ -17,7 +17,8 @@ df_cvli, df_ent = carregar_dados()
 # 2. MENU LATERAL: Filtros Globais
 with st.sidebar:
     st.header(":material/tune: Parâmetros de Análise")
-    datasets = st.multiselect(":material/database: Bases Ativas:", ["CVLI", "Entorpecentes"], default=["CVLI"])
+    # O SEGREDO ESTÁ AQUI: default=[] faz o sistema iniciar vazio
+    datasets = st.multiselect(":material/database: Bases Ativas:", ["CVLI", "Entorpecentes"], default=[])
     st.divider()
     
     min_d = df_cvli['Data'].min().date()
@@ -28,11 +29,18 @@ with st.sidebar:
     municipios = st.multiselect(":material/location_city: Municípios:", sorted(df_cvli['Município'].dropna().unique()))
     ais = st.multiselect(":material/share_location: AIS:", sorted(df_cvli['AIS'].dropna().unique()))
 
-# 3. ROTEAMENTO DE RENDERIZAÇÃO
+# 3. ROTEAMENTO DE RENDERIZAÇÃO (LANDING PAGE)
 if not datasets:
-    st.warning(":material/warning: Selecione pelo menos um módulo analítico na barra lateral.")
-    st.stop()
+    # TELA DE BOAS-VINDAS: Mostrada apenas quando nenhuma base está selecionada
+    st.info(":material/swipe_left: **Selecione pelo menos um módulo analítico na barra lateral para iniciar a visualização.**")
+    
+    st.markdown("### Módulos Disponíveis:")
+    st.markdown("**:material/emergency: CVLI (Crimes Violentos Letais Intencionais)**")
+    st.markdown("**:material/local_police: Entorpecentes (Tráfico de Drogas)**")
+    
+    st.stop() # Interrompe o código aqui para não tentar carregar abas vazias
 
+# A partir daqui, a sua lógica original roda perfeitamente!
 abas = st.tabs(datasets)
 
 # Dicionário para guardar os dataframes filtrados que retornarão das views
