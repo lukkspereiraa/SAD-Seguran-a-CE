@@ -2,23 +2,28 @@ import streamlit as st
 import pandas as pd
 from services.data_handler import carregar_dados
 
-# Importando os nossos novos módulos de visão
+# Importando os nossos módulos de visão
 import views.view_cvli as view_cvli
 import views.view_entorpecentes as view_entorpecentes
+import views.view_armas as view_armas # <-- NOVO MÓDULO IMPORTADO
 
 st.set_page_config(page_title="SAD | Segurança CE", page_icon=":material/shield:", layout="wide", initial_sidebar_state="expanded")
 st.title(":material/analytics: SAD - Inteligência em Segurança Pública (Ceará)")
 st.markdown("Plataforma Modular de Apoio à Decisão.")
 st.divider()
 
-# 1. CARREGAMENTO DOS DADOS
-df_cvli, df_ent = carregar_dados()
+# 1. CARREGAMENTO DOS DADOS (Agora retorna 3 bases)
+df_cvli, df_ent, df_armas = carregar_dados()
 
 # 2. MENU LATERAL: Filtros Globais
 with st.sidebar:
     st.header(":material/tune: Parâmetros de Análise")
-    # O SEGREDO ESTÁ AQUI: default=[] faz o sistema iniciar vazio
-    datasets = st.multiselect(":material/database: Bases Ativas:", ["CVLI", "Entorpecentes"], default=[])
+    # Adicionamos "Armas de Fogo" na lista
+    datasets = st.multiselect(
+        ":material/database: Bases Ativas:", 
+        ["CVLI", "Entorpecentes", "Armas de Fogo"], 
+        default=[]
+    )
     st.divider()
     
     min_d = df_cvli['Data'].min().date()
@@ -31,33 +36,31 @@ with st.sidebar:
 
 # 3. ROTEAMENTO DE RENDERIZAÇÃO (LANDING PAGE)
 if not datasets:
-    # TELA DE BOAS-VINDAS: Mostrada apenas quando nenhuma base está selecionada
     st.info(":material/swipe_left: **Selecione pelo menos um módulo analítico na barra lateral para iniciar a visualização.**")
     
     st.markdown("### Módulos Disponíveis:")
-    st.markdown("**:material/emergency: CVLI (Crimes Violentos Letais Intencionais)**")
-    st.markdown("**:material/local_police: Entorpecentes (Tráfico de Drogas)**")
-    
-    st.stop() # Interrompe o código aqui para não tentar carregar abas vazias
+    st.markdown("**:material/emergency: CVLI (Crimes contra a Vida)**")
+    st.markdown("**:material/medication: Entorpecentes (Tráfico de Drogas)**")
+    st.markdown("**:material/crisis_alert: Armas de Fogo (Desarmamento e Apreensões)**") # <-- NOVO
+    st.stop() 
 
-# A partir daqui, a sua lógica original roda perfeitamente!
 abas = st.tabs(datasets)
-
-# Dicionário para guardar os dataframes filtrados que retornarão das views
 dataframes_filtrados = {}
 
 for index, modulo in enumerate(datasets):
     with abas[index]:
         match modulo:
             case "CVLI":
-                # Chama a view de CVLI e guarda o retorno
                 df_filtrado = view_cvli.render(df_cvli, datas, municipios, ais)
                 dataframes_filtrados["CVLI"] = df_filtrado
                 
             case "Entorpecentes":
-                # Chama a view de Entorpecentes e guarda o retorno
                 df_filtrado = view_entorpecentes.render(df_ent, datas, municipios, ais)
                 dataframes_filtrados["Entorpecentes"] = df_filtrado
+                
+            case "Armas de Fogo": # <-- ROTEAMENTO DA NOVA TELA
+                df_filtrado = view_armas.render(df_armas, datas, municipios, ais)
+                dataframes_filtrados["Armas de Fogo"] = df_filtrado
                 
             case _:
                 st.error(":material/error: Módulo não reconhecido.")
@@ -72,6 +75,9 @@ if st.checkbox("Exibir Base de Dados Tratada (Dataframe)"):
         
     if "Entorpecentes" in dataframes_filtrados and not dataframes_filtrados["Entorpecentes"].empty:
         bases_mescladas.append(dataframes_filtrados["Entorpecentes"].assign(**{'Fonte dos Dados': 'Entorpecentes'}))
+        
+    if "Armas de Fogo" in dataframes_filtrados and not dataframes_filtrados["Armas de Fogo"].empty:
+        bases_mescladas.append(dataframes_filtrados["Armas de Fogo"].assign(**{'Fonte dos Dados': 'Armas de Fogo'}))
         
     if bases_mescladas:
         df_final = pd.concat(bases_mescladas, ignore_index=True)
