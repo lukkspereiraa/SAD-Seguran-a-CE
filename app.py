@@ -5,23 +5,25 @@ from services.data_handler import carregar_dados
 # Importando os nossos módulos de visão
 import views.view_cvli as view_cvli
 import views.view_entorpecentes as view_entorpecentes
-import views.view_armas as view_armas # <-- NOVO MÓDULO IMPORTADO
+import views.view_armas as view_armas
+import views.view_salvamento as view_salvamento # <-- NOVO MÓDULO IMPORTADO
 
 st.set_page_config(page_title="SAD | Segurança CE", page_icon=":material/shield:", layout="wide", initial_sidebar_state="expanded")
 st.title(":material/analytics: SAD - Inteligência em Segurança Pública (Ceará)")
 st.markdown("Plataforma Modular de Apoio à Decisão.")
 st.divider()
 
-# 1. CARREGAMENTO DOS DADOS (Agora retorna 3 bases)
-df_cvli, df_ent, df_armas = carregar_dados()
+# 1. CARREGAMENTO DOS DADOS (Agora retorna 4 bases)
+df_cvli, df_ent, df_armas, df_salvamento = carregar_dados()
 
 # 2. MENU LATERAL: Filtros Globais
 with st.sidebar:
     st.header(":material/tune: Parâmetros de Análise")
-    # Adicionamos "Armas de Fogo" na lista
+    
+    # Adicionamos "Salvamento (CBMCE)" na lista
     datasets = st.multiselect(
         ":material/database: Bases Ativas:", 
-        ["CVLI", "Entorpecentes", "Armas de Fogo"], 
+        ["CVLI", "Entorpecentes", "Armas de Fogo", "Salvamento (CBMCE)"], 
         default=[]
     )
     st.divider()
@@ -40,8 +42,9 @@ if not datasets:
     
     st.markdown("### Módulos Disponíveis:")
     st.markdown("**:material/emergency: CVLI (Crimes contra a Vida)**")
-    st.markdown("**:material/medication: Entorpecentes (Tráfico de Drogas)**")
-    st.markdown("**:material/crisis_alert: Armas de Fogo (Desarmamento e Apreensões)**") # <-- NOVO
+    st.markdown("**:material/local_police: Entorpecentes (Tráfico de Drogas)**")
+    st.markdown("**:material/crisis_alert: Armas de Fogo (Desarmamento)**")
+    st.markdown("**:material/medical_services: Salvamento (Bombeiros/Defesa Civil)**") # <-- NOVO
     st.stop() 
 
 abas = st.tabs(datasets)
@@ -58,9 +61,13 @@ for index, modulo in enumerate(datasets):
                 df_filtrado = view_entorpecentes.render(df_ent, datas, municipios, ais)
                 dataframes_filtrados["Entorpecentes"] = df_filtrado
                 
-            case "Armas de Fogo": # <-- ROTEAMENTO DA NOVA TELA
+            case "Armas de Fogo":
                 df_filtrado = view_armas.render(df_armas, datas, municipios, ais)
                 dataframes_filtrados["Armas de Fogo"] = df_filtrado
+                
+            case "Salvamento (CBMCE)": # <-- ROTEAMENTO DA NOVA TELA
+                df_filtrado = view_salvamento.render(df_salvamento, datas, municipios, ais)
+                dataframes_filtrados["Salvamento"] = df_filtrado
                 
             case _:
                 st.error(":material/error: Módulo não reconhecido.")
@@ -78,6 +85,9 @@ if st.checkbox("Exibir Base de Dados Tratada (Dataframe)"):
         
     if "Armas de Fogo" in dataframes_filtrados and not dataframes_filtrados["Armas de Fogo"].empty:
         bases_mescladas.append(dataframes_filtrados["Armas de Fogo"].assign(**{'Fonte dos Dados': 'Armas de Fogo'}))
+        
+    if "Salvamento" in dataframes_filtrados and not dataframes_filtrados["Salvamento"].empty:
+        bases_mescladas.append(dataframes_filtrados["Salvamento"].assign(**{'Fonte dos Dados': 'Salvamento'}))
         
     if bases_mescladas:
         df_final = pd.concat(bases_mescladas, ignore_index=True)
