@@ -19,7 +19,8 @@ def tratar_datas_comuns(df):
 def carregar_dados(caminho_cvli='dataSett/CVLI_Agosto.xlsx', 
                    caminho_ent='dataSett/Entorpecentes.xlsx',
                    caminho_armas='dataSett/Arma-de-Fogo.xlsx',
-                   caminho_salvamento='dataSett/Salvamento_Agosto.xlsx'): # <-- 4ª BASE AQUI
+                   caminho_salvamento='dataSett/Salvamento_Agosto.xlsx',
+                   caminho_mp='dataSett/Lei-Maria-da-Penha_Agosto.xlsx'): # <-- 5ª BASE AQUI
     
     if not os.path.exists(caminho_cvli):
         st.error(f"🚨 Erro Crítico: Banco '{caminho_cvli}' não encontrado.")
@@ -38,12 +39,21 @@ def carregar_dados(caminho_cvli='dataSett/CVLI_Agosto.xlsx',
     if not df_armas.empty:
         df_armas['Quantidade'] = pd.to_numeric(df_armas['Quantidade'], errors='coerce').fillna(0)
 
-    # NOVO: Processamento de Salvamento
     df_salvamento = tratar_datas_comuns(pd.read_excel(caminho_salvamento, sheet_name=0)) if os.path.exists(caminho_salvamento) else pd.DataFrame()
 
-    # Agora a função retorna 4 bases!
-    return df_cvli, df_ent, df_armas, df_salvamento
+    # NOVO: Processamento de Maria da Penha
+    df_mp = tratar_datas_comuns(pd.read_excel(caminho_mp, sheet_name=0)) if os.path.exists(caminho_mp) else pd.DataFrame()
+    if not df_mp.empty:
+        df_mp['Idade Numérica'] = pd.to_numeric(df_mp['Idade da Vítima'], errors='coerce')
+        df_mp['Faixa Etária'] = pd.cut(
+            df_mp['Idade Numérica'], bins=[0, 17, 29, 59, 150], 
+            labels=['0 a 17 anos', '18 a 29 anos', '30 a 59 anos', '60+ anos (Idosas)'], right=True
+        ).cat.add_categories('Não Informada').fillna('Não Informada')
 
+    # Agora a função retorna as 5 bases!
+    return df_cvli, df_ent, df_armas, df_salvamento, df_mp
+
+# ================= FILTROS GLOBAIS =================
 def filtrar_dados_cvli(df, datas, municipios, ais, meios, faixas, escolaridades, generos, naturezas):
     if df.empty: return df
     mask = (df['Data'].dt.date >= datas[0]) & (df['Data'].dt.date <= datas[1])
@@ -67,10 +77,26 @@ def filtrar_dados_armas(df, datas, municipios, ais):
     if ais: mask &= df['AIS'].isin(ais)
     return df[mask]
 
-# --- NOVA FUNÇÃO DE FILTRO: SALVAMENTO ---
 def filtrar_dados_salvamento(df, datas, municipios, ais):
     if df.empty: return df
     mask = (df['Data'].dt.date >= datas[0]) & (df['Data'].dt.date <= datas[1])
     if municipios: mask &= df['Município'].isin(municipios)
     if ais: mask &= df['AIS'].isin(ais)
+    return df[mask]
+
+# --- NOVA FUNÇÃO DE FILTRO: MARIA DA PENHA ---
+def filtrar_dados_maria_penha(df, datas, municipios, ais, faixas_etarias, racas, escolaridades):
+    if df.empty: return df
+    mask = (df['Data'].dt.date >= datas[0]) & (df['Data'].dt.date <= datas[1])
+    
+    filtros = {
+        'Município': municipios, 
+        'AIS': ais, 
+        'Faixa Etária': faixas_etarias,
+        'Raça da Vítima': racas,
+        'Escolaridade da Vítima': escolaridades
+    }
+    
+    for coluna, valores in filtros.items():
+        if valores: mask &= df[coluna].isin(valores)
     return df[mask]
