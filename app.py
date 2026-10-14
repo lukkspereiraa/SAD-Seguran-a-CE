@@ -9,14 +9,15 @@ import views.view_armas as view_armas
 import views.view_salvamento as view_salvamento
 import views.view_maria_penha as view_maria_penha
 import views.view_lgbtfobia as view_lgbtfobia
-import views.view_racismo as view_racismo # <-- Apenas o Racismo (sem executiva)
+import views.view_racismo as view_racismo 
+import views.view_furto as view_furto
 
 st.set_page_config(page_title="SAD | Segurança CE", page_icon=":material/shield:", layout="wide", initial_sidebar_state="expanded")
 st.title(":material/analytics: SAD - Inteligência em Segurança Pública (Ceará)")
 st.divider()
 
 # 1. CARREGAMENTO DOS DADOS (As 7 bases)
-df_cvli, df_ent, df_armas, df_salvamento, df_mp, df_lgbt, df_racismo = carregar_dados()
+df_cvli, df_ent, df_armas, df_salvamento, df_mp, df_lgbt, df_racismo, df_furto = carregar_dados()
 
 # 2. MENU LATERAL GERAL
 with st.sidebar:
@@ -27,7 +28,8 @@ with st.sidebar:
         [
             "CVLI", "Entorpecentes", "Armas de Fogo", "Salvamento (CBMCE)", 
             "Violência Doméstica (Maria da Penha)", "Crimes de Intolerância (LGBTfobia)",
-            "Preconceito de Raça/Cor (Racismo)"
+            "Preconceito de Raça/Cor (Racismo)", 
+            "Furtos (Crimes contra o Património)" # <-- NOVO MÓDULO
         ], 
         default=[]
     )
@@ -52,6 +54,7 @@ if not datasets:
     st.markdown("**:material/family_restroom: Violência Doméstica (Maria da Penha)**")
     st.markdown("**:material/diversity_3: Crimes de Intolerância (LGBTfobia)**")
     st.markdown("**:material/balance: Preconceito de Raça/Cor (Racismo)**")
+    st.markdown("**:material/lock_open: Furtos (Crimes contra o Património)**")
     st.stop() 
 
 abas = st.tabs(datasets)
@@ -81,6 +84,9 @@ for index, modulo in enumerate(datasets):
             case "Preconceito de Raça/Cor (Racismo)":
                 df_filtrado = view_racismo.render(df_racismo, datas, municipios, ais)
                 dataframes_filtrados["Racismo"] = df_filtrado
+            case "Furtos (Crimes contra o Património)":
+                df_filtrado = view_furto.render(df_furto, datas, municipios, ais)
+                dataframes_filtrados["Furto"] = df_filtrado
             case _:
                 st.error("Módulo não reconhecido.")
 
@@ -88,7 +94,7 @@ for index, modulo in enumerate(datasets):
 st.divider()
 if st.checkbox("Exibir Base de Dados Tratada (Dataframe)"):
     bases_mescladas = []
-    nomes_modulos = ["CVLI", "Entorpecentes", "Armas de Fogo", "Salvamento", "Maria da Penha", "LGBTfobia", "Racismo"]
+    nomes_modulos = ["CVLI", "Entorpecentes", "Armas de Fogo", "Salvamento", "Maria da Penha", "LGBTfobia", "Racismo", "Furto"]
     
     for nome in nomes_modulos:
         if nome in dataframes_filtrados and not dataframes_filtrados[nome].empty:
