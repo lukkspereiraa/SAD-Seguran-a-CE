@@ -13,14 +13,15 @@ import views.view_racismo as view_racismo
 import views.view_furto as view_furto
 import views.view_cvp as view_cvp
 import views.view_crimes_sexuais as view_crimes_sexuais
-import views.view_indigenas as view_indigenas # <-- Nova Importação do Módulo Indígena
+import views.view_indigenas as view_indigenas
+import views.view_animais as view_animais # <-- Importação da 12ª Base
 
 st.set_page_config(page_title="SAD | Segurança CE", layout="wide", initial_sidebar_state="expanded")
 st.title("SAD - Inteligência em Segurança Pública (Ceará)")
 st.divider()
 
-# 1. CARREGAMENTO DOS DADOS (As 11 bases)
-df_cvli, df_ent, df_armas, df_salvamento, df_mp, df_lgbt, df_racismo, df_furto, df_cvp, df_sexuais, df_indigenas = carregar_dados()
+# 1. CARREGAMENTO DOS DADOS (As 12 bases)
+df_cvli, df_ent, df_armas, df_salvamento, df_mp, df_lgbt, df_racismo, df_furto, df_cvp, df_sexuais, df_indigenas, df_animais = carregar_dados()
 
 # 2. MENU LATERAL GERAL
 with st.sidebar:
@@ -39,7 +40,8 @@ with st.sidebar:
             "Furto (Crimes contra o Património)",
             "CVP (Roubos e Assaltos)",
             "Crimes Sexuais (Dignidade Sexual)",
-            "Povos Indígenas (Violência contra Originários)" # <-- Adicionado no menu
+            "Povos Indígenas (Violência contra Originários)",
+            "Crimes Ambientais (Maus-Tratos a Animais)" # <-- 12.ª Opção
         ], 
         default=[]
     )
@@ -67,7 +69,8 @@ if not datasets:
     st.markdown("**Furto (Crimes contra o Património)**")
     st.markdown("**CVP (Roubos e Assaltos)**")
     st.markdown("**Crimes Sexuais (Dignidade Sexual)**")
-    st.markdown("**Povos Indígenas (Violência contra Originários)**") # <-- Adicionado na lista visual
+    st.markdown("**Povos Indígenas (Violência contra Originários)**")
+    st.markdown("**Crimes Ambientais (Maus-Tratos a Animais)**")
     st.stop() 
 
 abas = st.tabs(datasets)
@@ -108,11 +111,14 @@ for index, modulo in enumerate(datasets):
                 dataframes_filtrados["Crimes Sexuais"] = df_filtrado
             case "Povos Indígenas (Violência contra Originários)":
                 df_filtrado = view_indigenas.render(df_indigenas, datas, municipios, ais)
-                dataframes_filtrados["Indigenas"] = df_filtrado # <-- Módulo guardado para exportação
+                dataframes_filtrados["Indigenas"] = df_filtrado
+            case "Crimes Ambientais (Maus-Tratos a Animais)":
+                df_filtrado = view_animais.render(df_animais, datas, municipios, ais)
+                dataframes_filtrados["Animais"] = df_filtrado # <-- 12.ª Base Guardada
             case _:
                 st.error("Módulo não reconhecido.")
 
-# 4. EXIBIÇÃO DA BASE MESCLADA
+# 4. EXIBIÇÃO DA BASE MESCLADA (Download)
 st.divider()
 
 col1, col2 = st.columns([8, 2])
@@ -121,9 +127,8 @@ with col1:
     exibir_tabela = st.checkbox("Exibir Base de Dados Tratada (Dataframe)")
 
 if exibir_tabela:
-    # Atualizado com a base de Povos Indígenas (11 bases totais)
     bases_mescladas = []
-    nomes_modulos = ["CVLI", "Entorpecentes", "Armas de Fogo", "Salvamento", "Maria da Penha", "LGBTfobia", "Racismo", "Furto", "CVP", "Crimes Sexuais", "Indigenas"]
+    nomes_modulos = ["CVLI", "Entorpecentes", "Armas de Fogo", "Salvamento", "Maria da Penha", "LGBTfobia", "Racismo", "Furto", "CVP", "Crimes Sexuais", "Indigenas", "Animais"]
     
     for nome in nomes_modulos:
         if nome in dataframes_filtrados and not dataframes_filtrados[nome].empty:
@@ -133,20 +138,15 @@ if exibir_tabela:
         df_final = pd.concat(bases_mescladas, ignore_index=True)
         colunas_ordenadas = ['Fonte dos Dados'] + [col for col in df_final.columns if col != 'Fonte dos Dados']
         
-        # Oculta colunas de engenharia interna para não poluir a exportação
         df_limpo = df_final[colunas_ordenadas].drop(columns=['Hora_Pico', 'Idade Numérica', 'Hora_Int'], errors='ignore')
         
         st.dataframe(df_limpo, use_container_width=True)
         
-        # Botão de Exportação Executiva (Download)
         with col2:
             csv = df_limpo.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="Descarregar Relatório (CSV)",
-                data=csv,
-                file_name="SAD_Seguranca_Relatorio.csv",
-                mime="text/csv",
-                type="primary"
+                label="Descarregar Relatório (CSV)", data=csv,
+                file_name="SAD_Seguranca_Relatorio.csv", mime="text/csv", type="primary"
             )
     else:
         st.warning("Não há dados para exibir com os filtros atuais.")
