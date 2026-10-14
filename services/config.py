@@ -12,5 +12,6 @@ CONFIG_BASES = {
     'LGBTfobia': 'dataSett/Homofobia-e-Transfobia_Agosto.xlsx',
     'Racismo': 'dataSett/Crime-ou-Preconceito-de-Raca-ou-de-Cor_Agosto.xlsx',
     'Furto': 'dataSett/Furto.xlsx',
-    'CVP': 'dataSett/CVP.xlsx'
+    'CVP': 'dataSett/CVP.xlsx',
+    'Crimes Sexuais': 'dataSett/Crimes-Sexuais_Agosto.xlsx'
 }

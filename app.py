@@ -11,14 +11,15 @@ import views.view_maria_penha as view_maria_penha
 import views.view_lgbtfobia as view_lgbtfobia
 import views.view_racismo as view_racismo 
 import views.view_furto as view_furto
-import views.view_cvp as view_cvp # <-- Importação do Módulo CVP
+import views.view_cvp as view_cvp
+import views.view_crimes_sexuais as view_crimes_sexuais # <-- Importação do Módulo de Crimes Sexuais
 
 st.set_page_config(page_title="SAD | Segurança CE", layout="wide", initial_sidebar_state="expanded")
 st.title("SAD - Inteligência em Segurança Pública (Ceará)")
 st.divider()
 
-# 1. CARREGAMENTO DOS DADOS (As 9 bases)
-df_cvli, df_ent, df_armas, df_salvamento, df_mp, df_lgbt, df_racismo, df_furto, df_cvp = carregar_dados()
+# 1. CARREGAMENTO DOS DADOS (As 10 bases)
+df_cvli, df_ent, df_armas, df_salvamento, df_mp, df_lgbt, df_racismo, df_furto, df_cvp, df_sexuais = carregar_dados()
 
 # 2. MENU LATERAL GERAL
 with st.sidebar:
@@ -35,7 +36,8 @@ with st.sidebar:
             "LGBTfobia (Intolerância)",
             "Racismo (Intolerância)", 
             "Furto (Crimes contra o Património)",
-            "CVP (Roubos e Assaltos)" # <-- Adicionado CVP no menu
+            "CVP (Roubos e Assaltos)",
+            "Crimes Sexuais (Dignidade Sexual)" # <-- Adicionado no menu
         ], 
         default=[]
     )
@@ -61,7 +63,8 @@ if not datasets:
     st.markdown("**LGBTfobia (Intolerância)**")
     st.markdown("**Racismo (Intolerância)**")
     st.markdown("**Furto (Crimes contra o Património)**")
-    st.markdown("**CVP (Roubos e Assaltos)**") # <-- Adicionado na lista visual
+    st.markdown("**CVP (Roubos e Assaltos)**")
+    st.markdown("**Crimes Sexuais (Dignidade Sexual)**") # <-- Adicionado na lista visual
     st.stop() 
 
 abas = st.tabs(datasets)
@@ -97,6 +100,9 @@ for index, modulo in enumerate(datasets):
             case "CVP (Roubos e Assaltos)":
                 df_filtrado = view_cvp.render(df_cvp, datas, municipios, ais)
                 dataframes_filtrados["CVP"] = df_filtrado
+            case "Crimes Sexuais (Dignidade Sexual)":
+                df_filtrado = view_crimes_sexuais.render(df_sexuais, datas, municipios, ais)
+                dataframes_filtrados["Crimes Sexuais"] = df_filtrado
             case _:
                 st.error("Módulo não reconhecido.")
 
@@ -109,8 +115,9 @@ with col1:
     exibir_tabela = st.checkbox("Exibir Base de Dados Tratada (Dataframe)")
 
 if exibir_tabela:
+    # Atualizado com a base de Crimes Sexuais
     bases_mescladas = []
-    nomes_modulos = ["CVLI", "Entorpecentes", "Armas de Fogo", "Salvamento", "Maria da Penha", "LGBTfobia", "Racismo", "Furto", "CVP"]
+    nomes_modulos = ["CVLI", "Entorpecentes", "Armas de Fogo", "Salvamento", "Maria da Penha", "LGBTfobia", "Racismo", "Furto", "CVP", "Crimes Sexuais"]
     
     for nome in nomes_modulos:
         if nome in dataframes_filtrados and not dataframes_filtrados[nome].empty:
