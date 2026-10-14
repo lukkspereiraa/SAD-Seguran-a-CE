@@ -13,5 +13,6 @@ CONFIG_BASES = {
     'Racismo': 'dataSett/Crime-ou-Preconceito-de-Raca-ou-de-Cor_Agosto.xlsx',
     'Furto': 'dataSett/Furto.xlsx',
     'CVP': 'dataSett/CVP.xlsx',
-    'Crimes Sexuais': 'dataSett/Crimes-Sexuais_Agosto.xlsx'
+    'Crimes Sexuais': 'dataSett/Crimes-Sexuais_Agosto.xlsx',
+    'Indigenas': 'dataSett/Indigenas_Agosto.xlsx'
 }

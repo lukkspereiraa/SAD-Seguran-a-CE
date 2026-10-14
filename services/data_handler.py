@@ -21,7 +21,7 @@ def carregar_dados():
             dfs[nome_base] = pd.DataFrame()
             
     # Retorna as variáveis na ordem exata para consumo no app.py
-    return dfs['CVLI'], dfs['Entorpecentes'], dfs['Armas'], dfs['Salvamento'], dfs['Maria da Penha'], dfs['LGBTfobia'], dfs['Racismo'], dfs['Furto'], dfs['CVP'], dfs['Crimes Sexuais'] 
+    return dfs['CVLI'], dfs['Entorpecentes'], dfs['Armas'], dfs['Salvamento'], dfs['Maria da Penha'], dfs['LGBTfobia'], dfs['Racismo'], dfs['Furto'], dfs['CVP'], dfs['Crimes Sexuais'], dfs['Indigenas']
 
 # =====================================================================
 # 2. MOTOR DE FILTRAGEM UNIVERSAL (Polimorfismo com **kwargs)
@@ -73,4 +73,7 @@ def filtrar_dados_cvp(df, datas, municipios, ais):
     return filtrar_dataframe(df, datas, Município=municipios, AIS=ais)
 
 def filtrar_dados_crimes_sexuais(df, datas, municipios, ais):
+    return filtrar_dataframe(df, datas, Município=municipios, AIS=ais)
+
+def filtrar_dados_indigenas(df, datas, municipios, ais):
     return filtrar_dataframe(df, datas, Município=municipios, AIS=ais)

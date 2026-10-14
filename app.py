@@ -12,14 +12,15 @@ import views.view_lgbtfobia as view_lgbtfobia
 import views.view_racismo as view_racismo 
 import views.view_furto as view_furto
 import views.view_cvp as view_cvp
-import views.view_crimes_sexuais as view_crimes_sexuais # <-- Importação do Módulo de Crimes Sexuais
+import views.view_crimes_sexuais as view_crimes_sexuais
+import views.view_indigenas as view_indigenas # <-- Nova Importação do Módulo Indígena
 
 st.set_page_config(page_title="SAD | Segurança CE", layout="wide", initial_sidebar_state="expanded")
 st.title("SAD - Inteligência em Segurança Pública (Ceará)")
 st.divider()
 
-# 1. CARREGAMENTO DOS DADOS (As 10 bases)
-df_cvli, df_ent, df_armas, df_salvamento, df_mp, df_lgbt, df_racismo, df_furto, df_cvp, df_sexuais = carregar_dados()
+# 1. CARREGAMENTO DOS DADOS (As 11 bases)
+df_cvli, df_ent, df_armas, df_salvamento, df_mp, df_lgbt, df_racismo, df_furto, df_cvp, df_sexuais, df_indigenas = carregar_dados()
 
 # 2. MENU LATERAL GERAL
 with st.sidebar:
@@ -37,7 +38,8 @@ with st.sidebar:
             "Racismo (Intolerância)", 
             "Furto (Crimes contra o Património)",
             "CVP (Roubos e Assaltos)",
-            "Crimes Sexuais (Dignidade Sexual)" # <-- Adicionado no menu
+            "Crimes Sexuais (Dignidade Sexual)",
+            "Povos Indígenas (Violência contra Originários)" # <-- Adicionado no menu
         ], 
         default=[]
     )
@@ -64,7 +66,8 @@ if not datasets:
     st.markdown("**Racismo (Intolerância)**")
     st.markdown("**Furto (Crimes contra o Património)**")
     st.markdown("**CVP (Roubos e Assaltos)**")
-    st.markdown("**Crimes Sexuais (Dignidade Sexual)**") # <-- Adicionado na lista visual
+    st.markdown("**Crimes Sexuais (Dignidade Sexual)**")
+    st.markdown("**Povos Indígenas (Violência contra Originários)**") # <-- Adicionado na lista visual
     st.stop() 
 
 abas = st.tabs(datasets)
@@ -103,6 +106,9 @@ for index, modulo in enumerate(datasets):
             case "Crimes Sexuais (Dignidade Sexual)":
                 df_filtrado = view_crimes_sexuais.render(df_sexuais, datas, municipios, ais)
                 dataframes_filtrados["Crimes Sexuais"] = df_filtrado
+            case "Povos Indígenas (Violência contra Originários)":
+                df_filtrado = view_indigenas.render(df_indigenas, datas, municipios, ais)
+                dataframes_filtrados["Indigenas"] = df_filtrado # <-- Módulo guardado para exportação
             case _:
                 st.error("Módulo não reconhecido.")
 
@@ -115,9 +121,9 @@ with col1:
     exibir_tabela = st.checkbox("Exibir Base de Dados Tratada (Dataframe)")
 
 if exibir_tabela:
-    # Atualizado com a base de Crimes Sexuais
+    # Atualizado com a base de Povos Indígenas (11 bases totais)
     bases_mescladas = []
-    nomes_modulos = ["CVLI", "Entorpecentes", "Armas de Fogo", "Salvamento", "Maria da Penha", "LGBTfobia", "Racismo", "Furto", "CVP", "Crimes Sexuais"]
+    nomes_modulos = ["CVLI", "Entorpecentes", "Armas de Fogo", "Salvamento", "Maria da Penha", "LGBTfobia", "Racismo", "Furto", "CVP", "Crimes Sexuais", "Indigenas"]
     
     for nome in nomes_modulos:
         if nome in dataframes_filtrados and not dataframes_filtrados[nome].empty:
@@ -128,7 +134,7 @@ if exibir_tabela:
         colunas_ordenadas = ['Fonte dos Dados'] + [col for col in df_final.columns if col != 'Fonte dos Dados']
         
         # Oculta colunas de engenharia interna para não poluir a exportação
-        df_limpo = df_final[colunas_ordenadas].drop(columns=['Hora_Pico', 'Idade Numérica'], errors='ignore')
+        df_limpo = df_final[colunas_ordenadas].drop(columns=['Hora_Pico', 'Idade Numérica', 'Hora_Int'], errors='ignore')
         
         st.dataframe(df_limpo, use_container_width=True)
         
