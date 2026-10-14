@@ -11,5 +11,6 @@ CONFIG_BASES = {
     'Maria da Penha': 'dataSett/Lei-Maria-da-Penha_Agosto.xlsx',
     'LGBTfobia': 'dataSett/Homofobia-e-Transfobia_Agosto.xlsx',
     'Racismo': 'dataSett/Crime-ou-Preconceito-de-Raca-ou-de-Cor_Agosto.xlsx',
-    'Furto': 'dataSett/Furto.xlsx'
+    'Furto': 'dataSett/Furto.xlsx',
+    'CVP': 'dataSett/CVP.xlsx'
 }
