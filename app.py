@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from services.data_handler import carregar_dados
 
-# Importação dos módulos de visão
+# Importação dos módulos de visão (13 Módulos!)
 import views.view_cvli as view_cvli
 import views.view_entorpecentes as view_entorpecentes
 import views.view_armas as view_armas
@@ -14,14 +14,15 @@ import views.view_furto as view_furto
 import views.view_cvp as view_cvp
 import views.view_crimes_sexuais as view_crimes_sexuais
 import views.view_indigenas as view_indigenas
-import views.view_animais as view_animais # <-- Importação da 12ª Base
+import views.view_animais as view_animais
+import views.view_incendios as view_incendios # <-- Importação Incêndios
 
 st.set_page_config(page_title="SAD | Segurança CE", layout="wide", initial_sidebar_state="expanded")
 st.title("SAD - Inteligência em Segurança Pública (Ceará)")
 st.divider()
 
-# 1. CARREGAMENTO DOS DADOS (As 12 bases)
-df_cvli, df_ent, df_armas, df_salvamento, df_mp, df_lgbt, df_racismo, df_furto, df_cvp, df_sexuais, df_indigenas, df_animais = carregar_dados()
+# 1. CARREGAMENTO DOS DADOS (As 13 bases)
+df_cvli, df_ent, df_armas, df_salvamento, df_mp, df_lgbt, df_racismo, df_furto, df_cvp, df_sexuais, df_indigenas, df_animais, df_incendios = carregar_dados()
 
 # 2. MENU LATERAL GERAL
 with st.sidebar:
@@ -41,7 +42,8 @@ with st.sidebar:
             "CVP (Roubos e Assaltos)",
             "Crimes Sexuais (Dignidade Sexual)",
             "Povos Indígenas (Violência contra Originários)",
-            "Crimes Ambientais (Maus-Tratos a Animais)" # <-- 12.ª Opção
+            "Crimes Ambientais (Maus-Tratos a Animais)",
+            "Incêndios (Operações CBMCE)" # <-- Último Módulo adicionado
         ], 
         default=[]
     )
@@ -58,19 +60,6 @@ with st.sidebar:
 # 3. ROTEAMENTO
 if not datasets:
     st.info("Selecione pelo menos um módulo analítico na barra lateral para iniciar a visualização.")
-    st.markdown("### Módulos Disponíveis:")
-    st.markdown("**CVLI (Crimes contra a Vida)**")
-    st.markdown("**Entorpecentes (Tráfico)**")
-    st.markdown("**Armas de Fogo**")
-    st.markdown("**Salvamento (CBMCE)**")
-    st.markdown("**Maria da Penha (Violência Doméstica)**")
-    st.markdown("**LGBTfobia (Intolerância)**")
-    st.markdown("**Racismo (Intolerância)**")
-    st.markdown("**Furto (Crimes contra o Património)**")
-    st.markdown("**CVP (Roubos e Assaltos)**")
-    st.markdown("**Crimes Sexuais (Dignidade Sexual)**")
-    st.markdown("**Povos Indígenas (Violência contra Originários)**")
-    st.markdown("**Crimes Ambientais (Maus-Tratos a Animais)**")
     st.stop() 
 
 abas = st.tabs(datasets)
@@ -114,21 +103,22 @@ for index, modulo in enumerate(datasets):
                 dataframes_filtrados["Indigenas"] = df_filtrado
             case "Crimes Ambientais (Maus-Tratos a Animais)":
                 df_filtrado = view_animais.render(df_animais, datas, municipios, ais)
-                dataframes_filtrados["Animais"] = df_filtrado # <-- 12.ª Base Guardada
+                dataframes_filtrados["Animais"] = df_filtrado
+            case "Incêndios (Operações CBMCE)":
+                df_filtrado = view_incendios.render(df_incendios, datas, municipios, ais)
+                dataframes_filtrados["Incendios"] = df_filtrado
             case _:
                 st.error("Módulo não reconhecido.")
 
 # 4. EXIBIÇÃO DA BASE MESCLADA (Download)
 st.divider()
-
 col1, col2 = st.columns([8, 2])
-
 with col1:
     exibir_tabela = st.checkbox("Exibir Base de Dados Tratada (Dataframe)")
 
 if exibir_tabela:
     bases_mescladas = []
-    nomes_modulos = ["CVLI", "Entorpecentes", "Armas de Fogo", "Salvamento", "Maria da Penha", "LGBTfobia", "Racismo", "Furto", "CVP", "Crimes Sexuais", "Indigenas", "Animais"]
+    nomes_modulos = ["CVLI", "Entorpecentes", "Armas de Fogo", "Salvamento", "Maria da Penha", "LGBTfobia", "Racismo", "Furto", "CVP", "Crimes Sexuais", "Indigenas", "Animais", "Incendios"]
     
     for nome in nomes_modulos:
         if nome in dataframes_filtrados and not dataframes_filtrados[nome].empty:
@@ -137,16 +127,12 @@ if exibir_tabela:
     if bases_mescladas:
         df_final = pd.concat(bases_mescladas, ignore_index=True)
         colunas_ordenadas = ['Fonte dos Dados'] + [col for col in df_final.columns if col != 'Fonte dos Dados']
-        
         df_limpo = df_final[colunas_ordenadas].drop(columns=['Hora_Pico', 'Idade Numérica', 'Hora_Int'], errors='ignore')
         
         st.dataframe(df_limpo, use_container_width=True)
         
         with col2:
             csv = df_limpo.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="Descarregar Relatório (CSV)", data=csv,
-                file_name="SAD_Seguranca_Relatorio.csv", mime="text/csv", type="primary"
-            )
+            st.download_button(label="Descarregar Relatório (CSV)", data=csv, file_name="SAD_Seguranca_Relatorio.csv", mime="text/csv", type="primary")
     else:
-        st.warning("Não há dados para exibir com os filtros atuais.")
+        st.warning("Não há dados para exibir.")

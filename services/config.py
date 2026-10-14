@@ -15,5 +15,6 @@ CONFIG_BASES = {
     'CVP': 'dataSett/CVP.xlsx',
     'Crimes Sexuais': 'dataSett/Crimes-Sexuais_Agosto.xlsx',
     'Indigenas': 'dataSett/Indigenas_Agosto.xlsx',
-    'Animais': 'dataSett/Animais_Agosto.xlsx' 
+    'Animais': 'dataSett/Animais_Agosto.xlsx',
+    'Incendios': 'dataSett/Incendio_Agosto.xlsx' 
 }
